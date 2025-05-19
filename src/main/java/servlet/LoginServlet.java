@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import models.User;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,40 +28,21 @@ public class LoginServlet extends HttpServlet {
         String username = req.getParameter("username");
         String password = req.getParameter("password");
 
-//        BufferedReader reader = req.getReader();
-//        StringBuilder sb = new StringBuilder();
-//        String line;
-//
-//        while ((line = reader.readLine()) != null) {
-//            sb.append(line);
-//        }
-//
-//        // Lấy JSON body từ request
-//        String requestBody = sb.toString();
-//
-// Parse JSON body
-//        JsonObject jsonObject = JsonParser.parseString(requestBody).getAsJsonObject();
-//
-//        // Truy xuất các trường từ JSON mà không cần gắn vào một class
-//        String username1 = jsonObject.get("username").getAsString();
-//        String password1 = jsonObject.get("password").getAsString();
-//
-//        // Sử dụng các trường
-//        System.out.println("Username: " + username1);
-//        System.out.println("Password: " + password1);
-//
-
-        User user = UserDao.findUserByNameAndPassword(username, password);
+        User user = UserDao.findUserByNameAndPassword(username);
 
         if (user != null) {
-            HttpSession session = req.getSession();
-            session.setAttribute("user", username); // lưu username
-
-            // Redirect tới /jsp-app/home
-            resp.sendRedirect(req.getContextPath() + "/home");
-        } else {
-            // Redirect lại trang login kèm theo thông báo (tùy chọn)
-            resp.sendRedirect(req.getContextPath() + "/login?error=true");
+            boolean isValid = BCrypt.checkpw(password, user.getHash_password());
+            if (isValid) {
+                HttpSession session = req.getSession();
+                session.setAttribute("id", String.valueOf(user.getId())); // lưu id
+                session.setAttribute("username", username); // lưu username
+                session.setAttribute("role", user.getRole().name());
+                // Redirect tới /jsp-app/home
+                resp.sendRedirect(req.getContextPath() + "/home");
+                return ;
+            }
         }
+        // Redirect lại trang login kèm theo thông báo (tùy chọn)
+        resp.sendRedirect(req.getContextPath() + "/login?error=true");
     }
 }

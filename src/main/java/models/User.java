@@ -1,5 +1,6 @@
 package models;
 
+import enumurate.UserRole;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -8,10 +9,12 @@ import lombok.experimental.FieldDefaults;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class User {
     int id;
     String username;
-    String password;
+    String hash_password;
+    UserRole role;
 
     @Override
     public String toString() {

@@ -1,111 +1,168 @@
-<%@ page import="models.Flight" %>
+<%@ page import="models.User" %>
 <%@ page import="java.util.List" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%
-    List<Flight> flights = (List<Flight>) request.getAttribute("flights");
-    int currentPage = (int) request.getAttribute("currentPage");
-    int totalPages = (int) request.getAttribute("totalPages");
-    String editingId = request.getParameter("edit"); // lấy chuyến bay đang edit
+    String role = (String) session.getAttribute("role");
+    String username = (String) session.getAttribute("username");
+
+    String myId = (String) session.getAttribute("id");
+
+    List<User> users = (List<User>) request.getAttribute("user");
+
+    String editingId = (String) request.getParameter("edit"); // lấy user đang edit
+    String successMessage = request.getParameter("success");
+    String errorMessage = request.getParameter("error");
+
 %>
 
-<html>
-<head>
-    <title>Quản lý chuyến bay</title>
-    <style>
-        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-        .pagination { margin-top: 20px; text-align: center; }
-        .pagination a { margin: 0 5px; text-decoration: none; }
-        input, select { padding: 5px; margin: 5px; }
-        .form-inline { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
-    </style>
-</head>
-<body>
+    <html>
+      <head>
+        <title>Home Quan ly nguoi dung: <%= role %></title>
+        <style>
+          table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+          }
+          th,
+          td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+          }
+          .pagination {
+            margin-top: 20px;
+            text-align: center;
+          }
+          .pagination a {
+            margin: 0 5px;
+            text-decoration: none;
+          }
+          input,
+          select {
+            padding: 5px;
+            margin: 5px;
+          }
+          .form-inline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            align-items: center;
+          }
+        </style>
+      </head>
+      <body>
+        <h2>Home Quan ly nguoi dung : <%= role %></h2>
 
-<h2>Danh sách chuyến bay</h2>
+        <form action="/jsp-app/logout" method="GET">
+          <button>Logout</button>
+        </form>
 
-<form action="/jsp-app/logout" method="GET">
-    <button>Logout</button>
-</form>
+        <% if (successMessage != null && !successMessage.isEmpty()) { %>
+            <p style="color: green"><%= successMessage %></p>
+        <% } %>
+        
+        <% if (errorMessage != null && !errorMessage.isEmpty()) { %>
+            <p style="color: red"><%= errorMessage %></p>
+        <% } %>
 
-<!-- Add New Flight -->
-<h3>Thêm chuyến bay</h3>
-<form class="form-inline" method="post" action="/jsp-app/flight/add">
-    <input name="macb" placeholder="Mã chuyến bay" required>
-    <input name="gadi" placeholder="Ga đi" required>
-    <input name="gaden" placeholder="Ga đến" required>
-    <input name="dodai" placeholder="Độ dài" type="number" required>
-    <input name="giodi" placeholder="Giờ đi (HH:mm:ss)" required>
-    <input name="gioden" placeholder="Giờ đến (HH:mm:ss)" required>
-    <input name="chiphi" placeholder="Chi phí" type="number" required>
-    <button type="submit">Thêm</button>
-</form>
+        <form action="/jsp-app/user" method="POST">
+          <input name="username" placeholder="Username" value=<%= username %>>
+          <input type="hidden" name="id" value="<%= myId %>">
+          <input type="hidden" name="_method" value="PUT">
+          <input type="hidden" name="_action" value="USER">
+          <input type="hidden" name="id" value="<%= myId %>">
+          <input name="password" placeholder="Password" />
+          <button>Cap nhat tai khoan</button>
+        </form>
 
-<!-- Flight List Table -->
-<table>
-    <thead>
-        <tr>
-            <th>Mã CB</th>
-            <th>Ga đi</th>
-            <th>Ga đến</th>
-            <th>Độ dài</th>
-            <th>Giờ đi</th>
-            <th>Giờ đến</th>
-            <th>Chi phí</th>
-            <th>Hành động</th>
-        </tr>
-    </thead>
-    <tbody>
-        <% for (Flight flight : flights) {
-            boolean isEditing = flight.getMacb().equals(editingId);
-        %>
-            <tr>
-            <% if (isEditing) { %>
-                <form action="/jsp-app/flight/update" method="post">
-                    <td><input name="macb" value="<%= flight.getMacb() %>" readonly></td>
-                    <td><input name="gadi" value="<%= flight.getGadi() %>"></td>
-                    <td><input name="gaden" value="<%= flight.getGaden() %>"></td>
-                    <td><input name="dodai" type="number" value="<%= flight.getDodai() %>"></td>
-                    <td><input name="giodi" value="<%= flight.getGiodi() %>"></td>
-                    <td><input name="gioden" value="<%= flight.getGioden() %>"></td>
-                    <td><input name="chiphi" type="number" value="<%= flight.getChiphi() %>"></td>
+    <% if("ADMIN".equalsIgnoreCase(role)) {%>
+
+        <h2>Them moi nguoi dung</h2>
+
+        <form action="/jsp-app/user" method="POST">
+          <input name="username" placeholder="Username" />
+          <input name="password" placeholder="Password" />
+          <select name="role" placeholder="role">
+            <option value="ADMIN">Admin</option>
+            <option value="USER">User</option>
+          </select>
+          <input name="_method" type="hidden" value="POST" />
+          <button>Add User</button>
+        </form>
+
+        <h2>Danh sach nguoi dung</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+               <% for (User user : users) {
+                  boolean isEditing = String.valueOf(user.getId()).equals(editingId);
+                  boolean isMe = String.valueOf(user.getId()).equals(myId);
+               %>
+                <tr>
+                    <% if (isEditing) { %>
+                    <form action="/jsp-app/user" method="post">
+                        <td><input name="id" value="<%= user.getId() %>" readonly></td>
+                        <td><input name="username" value="<%= user.getUsername() %>" readonly></td>
+                        <td>
+                            <select name="role" placeholder="role">
+                                <option value="ADMIN">Admin</option>
+                                <option value="USER">User</option>
+                            </select>
+                        </td>
+                    <% if(isMe) {%>
                     <td>
-                        <button type="submit">Lưu</button>
-                        <a href="/jsp-app/home?page=<%= currentPage %>">Hủy</a>
+                        <p>This is Me</p>
                     </td>
-                </form>
-            <% } else { %>
-                <td><%= flight.getMacb() %></td>
-                <td><%= flight.getGadi() %></td>
-                <td><%= flight.getGaden() %></td>
-                <td><%= flight.getDodai() %></td>
-                <td><%= flight.getGiodi() %></td>
-                <td><%= flight.getGioden() %></td>
-                <td><%= flight.getChiphi() %></td>
-                <td>
-                    <form action="/jsp-app/flight/delete" method="post" style="display:inline;">
-                        <input type="hidden" name="macb" value="<%= flight.getMacb() %>">
-                        <button type="submit">Xóa</button>
-                    </form>
-                    <a href="/jsp-app/home?page=<%= currentPage %>&edit=<%= flight.getMacb() %>">Sửa</a>
-                </td>
-            <% } %>
-            </tr>
-        <% } %>
-    </tbody>
-</table>
 
-<!-- Pagination -->
-<div class="pagination">
-    <% for (int i = 1; i <= totalPages; i++) { %>
-        <% if (i == currentPage) { %>
-            <strong><%= i %></strong>
-        <% } else { %>
-            <a href="/jsp-app/home?page=<%= i %>"><%= i %></a>
-        <% } %>
+                <% } else { %>
+                        <td>
+                            <input name="_action" value="admin" type="hidden" readonly>
+                            <input name="_method" value="put" type="hidden" readonly>
+                            <button type="submit">Lưu</button>
+                            <a href="/jsp-app/home">Hủy</a>
+                        </td>
+                        <% } %>
+                    </form>
+                           <% } else { %>
+                    <td><%= user.getId() %></td>
+                    <td><%= user.getUsername() %></td>
+                    <td><%= user.getRole() %></td>
+                    <% if(isMe) {%>
+                    <td>
+                        <p>This is Me</p>
+                    </td>
+                    <% } else {%>
+                    <td>
+                        <form action="/jsp-app/user" method="POST" style="display:inline;">
+                            <input type="hidden" name="id" value="<%= user.getId() %>">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button type="submit">Xóa</button>
+                        </form>
+                        <a href="/jsp-app/home?&edit=<%= user.getId() %>">Sửa</a>
+                    </td>
+                    <% } %>
+                <% } %>
+                </tr>
+               <% } %>
+            </tbody>
+
+
+        </table>
+
+
     <% } %>
-</div>
+
+
 
 </body>
 </html>

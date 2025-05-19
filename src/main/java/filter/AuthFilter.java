@@ -19,7 +19,7 @@ public class AuthFilter implements Filter {
 
         String path = req.getRequestURI();
         HttpSession session = req.getSession(false);
-        boolean loggedIn = (session != null && session.getAttribute("user") != null);
+        boolean loggedIn = (session != null && session.getAttribute("username") != null);
 
         boolean isLoginPage = path.endsWith("/login") || path.endsWith("/login.jsp");
 

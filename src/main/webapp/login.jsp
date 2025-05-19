@@ -2,8 +2,6 @@
 <html>
 <body>
 
-
-
 <form action="/jsp-app/login" method="POST">
     <h1>Login</h1>
 
@@ -12,7 +10,7 @@
     <br/>
 
     <label for="password">Password: </label>
-    <input type="password" id="password" name="password" required/>
+    <input id="password" name="password" required/>
     <br/>
 
 <%-- Kiểm tra nếu có lỗi đăng nhập --%>
